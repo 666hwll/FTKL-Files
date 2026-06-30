@@ -1,1 +1,1 @@
-# all Simulations in LTSPICE
+# all Simulations in LTSPICE and Multisim
