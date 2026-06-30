@@ -1,0 +1,48 @@
+* Edge-triggered CD4017 (LTspice-compatible)
+
+.subckt CD4017B Q5 Q1 Q0 Q2 Q6 Q7 Q3 VGND Q8 Q4 Q9 COUT CKEN CLK RST VCC
+
+* Clock normalization
+Bclk_norm nclk 0 V = if(V(CLK) > (V(VCC)/2), 1, 0)
+
+* Previous clock (delay)
+Bclk_prev nclk_d 0 V = delay(V(nclk), 1n)
+
+* Rising edge detect
+Bedge edge 0 V = if( V(nclk) > 0.5, if( V(nclk_d) < 0.5, 1, 0), 0 )
+
+* State memory
+Cstate state 0 1 IC=0
+
+* Next-state logic
+Bnext next 0 V =
++ if( V(RST) > (V(VCC)/2),
++     0,
++     if( V(edge) > 0.5,
++         if( V(CKEN) > (V(VCC)/2),
++             mod(V(state)+1, 10),
++             V(state)
++         ),
++         V(state)
++     )
++ )
+
+* State enforcement
+Gstate state 0 value = (V(next) - V(state))*1e6
+
+* Outputs (robust comparisons)
+Bq0  Q0  0 V = if(abs(V(state)-0)<0.1, V(VCC), 0)
+Bq1  Q1  0 V = if(abs(V(state)-1)<0.1, V(VCC), 0)
+Bq2  Q2  0 V = if(abs(V(state)-2)<0.1, V(VCC), 0)
+Bq3  Q3  0 V = if(abs(V(state)-3)<0.1, V(VCC), 0)
+Bq4  Q4  0 V = if(abs(V(state)-4)<0.1, V(VCC), 0)
+Bq5  Q5  0 V = if(abs(V(state)-5)<0.1, V(VCC), 0)
+Bq6  Q6  0 V = if(abs(V(state)-6)<0.1, V(VCC), 0)
+Bq7  Q7  0 V = if(abs(V(state)-7)<0.1, V(VCC), 0)
+Bq8  Q8  0 V = if(abs(V(state)-8)<0.1, V(VCC), 0)
+Bq9  Q9  0 V = if(abs(V(state)-9)<0.1, V(VCC), 0)
+
+* Carry out
+Bcout COUT 0 V = if(abs(V(state)-9)<0.1, V(VCC), 0)
+
+.ends CD4017B
